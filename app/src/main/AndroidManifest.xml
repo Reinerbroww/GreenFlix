@@ -35,7 +35,7 @@
         <activity
             android:name="com.reiner.greenflix.view.MainActivity"
             android:exported="false"
-            android:windowSoftInputMode="adjustPan" />
+            android:windowSoftInputMode="adjustNothing" />
 
         <!-- Detail Activity -->
         <activity
