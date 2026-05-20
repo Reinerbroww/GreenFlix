@@ -1,5 +1,6 @@
 package com.reiner.greenflix.view;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.card.MaterialCardView;
 import com.reiner.greenflix.R;
 import com.reiner.greenflix.adapter.FilmAdapter;
 import com.reiner.greenflix.controller.FilmController;
@@ -33,7 +35,9 @@ public class HomeFragment extends Fragment {
     private FilmAdapter adapter;
     private ImageView imgBanner;
     private TextView txtBannerTitle, txtBannerGenre;
+    private MaterialCardView cardBanner;
     private FilmController controller;
+    private Film bannerFilm;
 
     @Nullable
     @Override
@@ -45,12 +49,28 @@ public class HomeFragment extends Fragment {
         imgBanner = view.findViewById(R.id.imgBanner);
         txtBannerTitle = view.findViewById(R.id.txtBannerTitle);
         txtBannerGenre = view.findViewById(R.id.txtBannerGenre);
+        cardBanner = view.findViewById(R.id.cardBanner);
         recyclerFilm = view.findViewById(R.id.recyclerFilm);
         progressBar = view.findViewById(R.id.progressBar);
         swipeRefresh = view.findViewById(R.id.swipeRefresh);
 
         recyclerFilm.setLayoutManager(new GridLayoutManager(getContext(), 2));
-        recyclerFilm.setHasFixedSize(true);
+        recyclerFilm.setHasFixedSize(false);
+
+        cardBanner.setOnClickListener(v -> {
+            if (bannerFilm != null) {
+                Intent intent = new Intent(getContext(), DetailActivity.class);
+                intent.putExtra("id", bannerFilm.getId());
+                intent.putExtra("title", bannerFilm.getTitle());
+                intent.putExtra("genre", bannerFilm.getGenre());
+                intent.putExtra("desc", bannerFilm.getDescription());
+                intent.putExtra("image", bannerFilm.getImage());
+                intent.putExtra("cover", bannerFilm.getCoverImage());
+                intent.putExtra("rating", bannerFilm.getRating());
+                intent.putExtra("trailer", bannerFilm.getTrailer());
+                startActivity(intent);
+            }
+        });
 
         setupRefresh();
         getFilmData();
@@ -96,13 +116,13 @@ public class HomeFragment extends Fragment {
         if (films == null || films.isEmpty()) return;
 
         Random random = new Random();
-        Film film = films.get(random.nextInt(films.size()));
+        bannerFilm = films.get(random.nextInt(films.size()));
 
-        txtBannerTitle.setText(film.getTitle());
-        txtBannerGenre.setText(film.getGenre());
+        txtBannerTitle.setText(bannerFilm.getTitle());
+        txtBannerGenre.setText(bannerFilm.getGenre());
 
         Glide.with(this)
-                .load(film.getCoverImage() != null && !film.getCoverImage().isEmpty() ? film.getCoverImage() : film.getImage())
+                .load(bannerFilm.getCoverImage() != null && !bannerFilm.getCoverImage().isEmpty() ? bannerFilm.getCoverImage() : bannerFilm.getImage())
                 .thumbnail(0.2f)
                 .placeholder(R.drawable.ic_launcher_background)
                 .error(R.drawable.ic_launcher_background)

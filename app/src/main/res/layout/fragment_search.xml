@@ -34,7 +34,11 @@
             app:iconifiedByDefault="false"
             app:queryBackground="@android:color/transparent"
             app:queryHint="Search movies, genres..."
-            app:searchIcon="@drawable/ic_search" />
+            app:searchIcon="@drawable/ic_search"
+            app:theme="@style/ThemeOverlay.AppCompat.Dark"
+            android:importantForAutofill="no"
+            android:inputType="textFilter" />
+
     </com.google.android.material.card.MaterialCardView>
 
     <ProgressBar

@@ -16,15 +16,21 @@
         android:theme="@style/Theme.GreenFlix"
         tools:targetApi="31">
 
-        <!-- Login Activity as Launcher -->
+        <!-- Splash Activity as Launcher -->
         <activity
-            android:name="com.reiner.greenflix.view.LoginActivity"
-            android:exported="true">
+            android:name="com.reiner.greenflix.view.SplashActivity"
+            android:exported="true"
+            android:theme="@style/Theme.GreenFlix">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Login Activity -->
+        <activity
+            android:name="com.reiner.greenflix.view.LoginActivity"
+            android:exported="false" />
 
         <!-- Register Activity -->
         <activity
@@ -40,6 +46,11 @@
         <!-- Detail Activity -->
         <activity
             android:name="com.reiner.greenflix.view.DetailActivity"
+            android:exported="false" />
+
+        <!-- Update Activity -->
+        <activity
+            android:name="com.reiner.greenflix.view.UpdateActivity"
             android:exported="false" />
 
     </application>

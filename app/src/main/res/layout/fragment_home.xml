@@ -65,10 +65,13 @@
 
             <!-- BANNER -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardBanner"
                 android:layout_width="match_parent"
                 android:layout_height="220dp"
                 android:layout_marginHorizontal="16dp"
                 android:layout_marginBottom="24dp"
+                android:clickable="true"
+                android:focusable="true"
                 app:cardBackgroundColor="#121212"
                 app:cardCornerRadius="28dp"
                 app:cardElevation="12dp"
