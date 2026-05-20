@@ -6,6 +6,7 @@ import android.widget.Toast;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.reiner.greenflix.model.Film;
 import com.reiner.greenflix.network.VolleySingleton;
 import com.reiner.greenflix.utils.ApiConfig;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 public class FilmController {
 
     private final Context context;
+    private final String BASE_URL = "https://68ff8dfbe02b16d1753e765d.mockapi.io/film";
 
     public FilmController(Context context) {
         this.context = context;
@@ -28,12 +30,17 @@ public class FilmController {
         void onError(String errorMessage);
     }
 
+    public interface SingleDataCallback {
+        void onSuccess(Film film);
+        void onError(String errorMessage);
+    }
+
     public void getFilms(DataCallback callback) {
         ArrayList<Film> filmList = new ArrayList<>();
 
         JsonArrayRequest request = new JsonArrayRequest(
                 Request.Method.GET,
-                ApiConfig.BASE_URL,
+                BASE_URL,
                 null,
                 response -> {
                     try {
@@ -58,26 +65,83 @@ public class FilmController {
                         callback.onError("Gagal memproses data");
                     }
                 },
-                error -> {
-                    String message = "Gagal mengambil data dari server";
-                    if (error.networkResponse != null && error.networkResponse.statusCode == 404) {
-                        message = "Data tidak ditemukan";
-                    }
-                    callback.onError(message);
-                }
+                error -> callback.onError("Gagal mengambil data dari server")
         );
 
-        // Menambahkan RetryPolicy untuk mempercepat respon jika terjadi timeout kecil
-        // dan menghindari request ganda yang tidak perlu
-        request.setRetryPolicy(new DefaultRetryPolicy(
-                10000, // 10 detik timeout
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
-        ));
+        request.setRetryPolicy(new DefaultRetryPolicy(10000, 1, 1.0f));
+        VolleySingleton.getInstance(context).addToRequestQueue(request);
+    }
 
-        // Memastikan request tidak di-cache jika data sering berubah, 
-        // atau biarkan default jika ingin lebih cepat pada pemanggilan kedua
-        request.setShouldCache(true);
+    public void addFilm(Film film, SingleDataCallback callback) {
+        JSONObject postData = new JSONObject();
+        try {
+            postData.put("judul", film.getTitle());
+            postData.put("kategori", film.getGenre());
+            postData.put("gambar_poster", film.getImage());
+            postData.put("gambar_sampul", film.getCoverImage());
+            postData.put("ringkasan", film.getDescription());
+            postData.put("skor_rating", film.getRating());
+            postData.put("url_trailer", film.getTrailer());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.POST,
+                BASE_URL,
+                postData,
+                response -> {
+                    Film newFilm = new Film(
+                            response.optString("id"),
+                            response.optString("judul"),
+                            response.optString("kategori"),
+                            response.optString("gambar_poster"),
+                            response.optString("gambar_sampul"),
+                            response.optString("ringkasan"),
+                            response.optString("skor_rating"),
+                            response.optString("url_trailer")
+                    );
+                    callback.onSuccess(newFilm);
+                },
+                error -> callback.onError("Gagal menambah film")
+        );
+
+        VolleySingleton.getInstance(context).addToRequestQueue(request);
+    }
+
+    public void updateFilm(String id, Film film, SingleDataCallback callback) {
+        JSONObject putData = new JSONObject();
+        try {
+            putData.put("judul", film.getTitle());
+            putData.put("kategori", film.getGenre());
+            putData.put("gambar_poster", film.getImage());
+            putData.put("gambar_sampul", film.getCoverImage());
+            putData.put("ringkasan", film.getDescription());
+            putData.put("skor_rating", film.getRating());
+            putData.put("url_trailer", film.getTrailer());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.PUT,
+                BASE_URL + "/" + id,
+                putData,
+                response -> {
+                    Film updatedFilm = new Film(
+                            response.optString("id"),
+                            response.optString("judul"),
+                            response.optString("kategori"),
+                            response.optString("gambar_poster"),
+                            response.optString("gambar_sampul"),
+                            response.optString("ringkasan"),
+                            response.optString("skor_rating"),
+                            response.optString("url_trailer")
+                    );
+                    callback.onSuccess(updatedFilm);
+                },
+                error -> callback.onError("Gagal memperbarui film")
+        );
 
         VolleySingleton.getInstance(context).addToRequestQueue(request);
     }

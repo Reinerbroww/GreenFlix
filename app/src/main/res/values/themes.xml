@@ -7,4 +7,11 @@
     </style>
 
     <style name="Theme.GreenFlix" parent="Base.Theme.GreenFlix" />
+
+    <style name="GreenFlixSearchView" parent="Widget.AppCompat.SearchView">
+        <!-- Text color for the search query -->
+        <item name="android:editTextColor">@color/white</item>
+        <!-- Hint text color -->
+        <item name="android:textColorHint">@color/textGrey</item>
+    </style>
 </resources>

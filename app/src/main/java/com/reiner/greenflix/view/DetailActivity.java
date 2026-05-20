@@ -1,16 +1,15 @@
 package com.reiner.greenflix.view;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -25,18 +24,18 @@ public class DetailActivity extends AppCompatActivity {
 
     private ImageView imgPoster;
     private TextView txtTitle, txtGenre, txtDesc, txtRating;
-    private MaterialButton btnTrailer;
+    private MaterialButton btnTrailer, btnUpdate;
     private FloatingActionButton fabFavorite;
     private Toolbar toolbar;
     private String trailerUrl;
     private FavoriteManager favoriteManager;
     private Film currentFilm;
+    private static final int UPDATE_REQUEST_CODE = 101;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // Membuat activity full screen dan transparan pada status bar
         EdgeToEdge.enable(this);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         
@@ -47,6 +46,19 @@ public class DetailActivity extends AppCompatActivity {
         setupToolbar();
         getData();
         setupFavorite();
+        
+        btnUpdate.setOnClickListener(v -> {
+            Intent intent = new Intent(DetailActivity.this, UpdateActivity.class);
+            intent.putExtra("id", currentFilm.getId());
+            intent.putExtra("title", currentFilm.getTitle());
+            intent.putExtra("genre", currentFilm.getGenre());
+            intent.putExtra("image", currentFilm.getImage());
+            intent.putExtra("cover", currentFilm.getCoverImage());
+            intent.putExtra("rating", currentFilm.getRating());
+            intent.putExtra("trailer", currentFilm.getTrailer());
+            intent.putExtra("desc", currentFilm.getDescription());
+            startActivityForResult(intent, UPDATE_REQUEST_CODE);
+        });
     }
 
     private void initView() {
@@ -56,6 +68,7 @@ public class DetailActivity extends AppCompatActivity {
         txtDesc = findViewById(R.id.txtDesc);
         txtRating = findViewById(R.id.txtRating);
         btnTrailer = findViewById(R.id.btnTrailer);
+        btnUpdate = findViewById(R.id.btnUpdate);
         fabFavorite = findViewById(R.id.fabFavorite);
         toolbar = findViewById(R.id.toolbar);
     }
@@ -66,8 +79,6 @@ public class DetailActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle("");
         }
-        // Mengatur margin top toolbar agar tidak tertutup status bar jika diperlukan
-        // Namun dengan FLAG_LAYOUT_NO_LIMITS, kita biasanya mengatur padding di layout
         toolbar.setNavigationOnClickListener(v -> finish());
     }
 
@@ -84,12 +95,17 @@ public class DetailActivity extends AppCompatActivity {
 
         currentFilm = new Film(id, title, genre, image, cover, desc, rating, trailerUrl);
 
-        txtTitle.setText(title);
-        txtGenre.setText(genre);
-        txtDesc.setText(desc);
-        txtRating.setText(rating);
+        displayData();
+    }
 
-        String displayImage = (cover != null && !cover.isEmpty()) ? cover : image;
+    private void displayData() {
+        txtTitle.setText(currentFilm.getTitle());
+        txtGenre.setText(currentFilm.getGenre());
+        txtDesc.setText(currentFilm.getDescription());
+        txtRating.setText(currentFilm.getRating());
+
+        String displayImage = (currentFilm.getCoverImage() != null && !currentFilm.getCoverImage().isEmpty()) 
+                ? currentFilm.getCoverImage() : currentFilm.getImage();
 
         Glide.with(this)
                 .load(displayImage)
@@ -97,9 +113,11 @@ public class DetailActivity extends AppCompatActivity {
                 .into(imgPoster);
 
         btnTrailer.setOnClickListener(v -> {
-            if (trailerUrl != null && !trailerUrl.isEmpty()) {
-                Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(trailerUrl));
+            if (currentFilm.getTrailer() != null && !currentFilm.getTrailer().isEmpty()) {
+                Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(currentFilm.getTrailer()));
                 startActivity(i);
+            } else {
+                Toast.makeText(this, "Trailer not available", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -110,10 +128,10 @@ public class DetailActivity extends AppCompatActivity {
         fabFavorite.setOnClickListener(v -> {
             if (favoriteManager.isFavorite(currentFilm.getId())) {
                 favoriteManager.removeFavorite(currentFilm.getId());
-                Toast.makeText(this, "Dihapus dari Favorit", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Removed from Favorites", Toast.LENGTH_SHORT).show();
             } else {
                 favoriteManager.addFavorite(currentFilm);
-                Toast.makeText(this, "Ditambahkan ke Favorit", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Added to Favorites", Toast.LENGTH_SHORT).show();
             }
             updateFavoriteIcon();
         });
@@ -126,6 +144,17 @@ public class DetailActivity extends AppCompatActivity {
         } else {
             fabFavorite.setImageResource(R.drawable.ic_favorite);
             fabFavorite.setImageTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.textGrey)));
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == UPDATE_REQUEST_CODE && resultCode == RESULT_OK) {
+            // Refresh data could be complex with MockAPI latency, 
+            // but for simple cases we just finish and let the user go back or we can show a refresh toast.
+            Toast.makeText(this, "Please refresh list to see changes", Toast.LENGTH_LONG).show();
+            finish(); // Go back to list after update
         }
     }
 }
