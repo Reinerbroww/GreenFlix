@@ -2,8 +2,10 @@ package com.reiner.greenflix.view;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.WindowManager;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -23,6 +25,9 @@ public class UpdateActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // Aktifkan Edge-to-Edge agar tampilan full layar dan modern
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_update);
 
         controller = new FilmController(this);
@@ -89,7 +94,6 @@ public class UpdateActivity extends AppCompatActivity {
             @Override
             public void onSuccess(Film film) {
                 Toast.makeText(UpdateActivity.this, "Movie updated successfully!", Toast.LENGTH_SHORT).show();
-                // Send back result to DetailActivity if needed, or just finish
                 Intent resultIntent = new Intent();
                 resultIntent.putExtra("updated", true);
                 setResult(RESULT_OK, resultIntent);
